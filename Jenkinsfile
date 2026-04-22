@@ -25,19 +25,22 @@ pipeline {
             steps {
                 echo '🛠️ Copying Secrets and Building Images...'
                 
-                withCredentials([file(credentialsId: 'APPSETTINGS_PRODUCTION', variable: 'SECRET_FILE')]) {
-                    // ใช้ set -e เพื่อให้ระบบพ่น Error จริงออกมาและหยุดการทำงานทันทีถ้ามีคำสั่งใดพัง
-                    // และแก้ Path ให้ชี้ไปที่โฟลเดอร์ของ API ที่ถูกต้องตามที่เราคุยกันไว้
+                withCredentials([
+                    file(credentialsId: 'APPSETTINGS_PRODUCTION', variable: 'SECRET_FILE'),
+                    string(credentialsId: 'MY_API_URL', variable: 'SECRET_URL')
+                ]) {
                     sh '''#!/bin/bash
                     set -e
                     echo "--> Copying appsettings.json into ${API_DIR}..."
                     cp "$SECRET_FILE" ./${API_DIR}/appsettings.json
                     
-                    echo "--> Building Docker Compose..."
-                    docker-compose build
+                    echo "--> Building Docker Compose with API URL..."
+                    # ส่งค่า API_URL เข้าไปตอน Build ครั้งเดียวจบ
+                    API_URL="${SECRET_URL}" docker-compose build
                     '''
                 }
             }
+            
         }
 
         stage('Deploy') {
