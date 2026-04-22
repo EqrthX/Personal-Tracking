@@ -5,8 +5,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    volumes:
-      - ./appsettings.json:/app/appsettings.json
     ports:
       - "3000:3000"
     restart: always
