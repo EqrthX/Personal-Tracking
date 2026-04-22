@@ -19,9 +19,9 @@ namespace server_personal_tracking.API.Middlewares
         {
             try
             {
-                await _next(context);   
+                await _next(context);
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "An unhandled exception occurred.");
                 context.Response.StatusCode = StatusCodes.Status500InternalServerError;
@@ -30,7 +30,7 @@ namespace server_personal_tracking.API.Middlewares
                 {
                     StatusCode = context.Response.StatusCode,
                     Message = "An unexpected error occurred. Please try again later.",
-                    Details = ex.Message 
+                    Details = ex.Message
                 };
                 await HandleExceptionAsync(context, ex);
             }
@@ -38,6 +38,8 @@ namespace server_personal_tracking.API.Middlewares
 
         private async Task HandleExceptionAsync(HttpContext context, Exception ex)
         {
+            context.Response.Headers.Append("Access-Control-Allow-Origin", "http://35.221.169.135:8081");
+            context.Response.Headers.Append("Access-Control-Allow-Credentials", "true");
             context.Response.ContentType = "application/json";
 
             var statusCode = (int)HttpStatusCode.InternalServerError;
@@ -45,7 +47,7 @@ namespace server_personal_tracking.API.Middlewares
 
             if (ex is AppException appEx)
             {
-                statusCode = appEx.StatusCode; 
+                statusCode = appEx.StatusCode;
                 message = appEx.Message;
             }
 
