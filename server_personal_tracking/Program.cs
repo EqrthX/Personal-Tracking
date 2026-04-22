@@ -21,8 +21,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         ));
 builder.Services.ConfigureApplicationCookie(options =>
 {
-    options.Cookie.SameSite = SameSiteMode.Lax; // ยอมให้ส่ง Cookie ข้ามพอร์ตได้ใน HTTP
-    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; // ไม่บังคับ HTTPS
+    options.Cookie.SameSite = SameSiteMode.Lax; 
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 });
 builder.Services.AddScoped<IUserService, UserServices>();
 builder.Services.AddScoped<IFinanceService, FinanceService>();
