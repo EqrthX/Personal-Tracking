@@ -36,8 +36,7 @@ pipeline {
                     
                     echo "--> Building Docker Compose with API URL..."
                     # ส่งค่า API_URL เข้าไปตอน Build ครั้งเดียวจบ
-                    --no-cache frontend
-                    API_URL="${SECRET_URL}" docker-compose build
+                    API_URL="${SECRET_URL}" docker-compose build --no-cache frontend
                     '''
                 }
             }
