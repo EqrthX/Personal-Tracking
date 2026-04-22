@@ -18,7 +18,7 @@ pipeline {
             steps {
                 echo 'กำลัง Build Images ทั้งหมดด้วย Docker Compose...'
                 // ใช้การเช็คผ่าน shell โดยตรง
-                sh 'docker compose build'
+                sh 'docker-compose build'
             }
             post {
                 failure {
