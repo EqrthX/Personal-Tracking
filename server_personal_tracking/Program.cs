@@ -21,7 +21,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         ));
 builder.Services.ConfigureApplicationCookie(options =>
 {
-    options.Cookie.SameSite = SameSiteMode.Lax; 
+    options.Cookie.SameSite = SameSiteMode.Lax;
     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 });
 builder.Services.AddScoped<IUserService, UserServices>();
@@ -31,7 +31,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontendWithCookies", policy =>
     {
-        policy.WithOrigins("http://35.221.169.135:8081")
+        policy.SetIsOriginAllowed(_ => true)
                .AllowAnyHeader()
                .AllowAnyMethod()
                .AllowCredentials()
