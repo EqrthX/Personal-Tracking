@@ -19,7 +19,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         builder.Configuration.GetConnectionString("DefaultConnection"),
         b => b.MigrationsAssembly("server_personal_tracking.API")
         ));
-
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.SameSite = SameSiteMode.Lax; // ยอมให้ส่ง Cookie ข้ามพอร์ตได้ใน HTTP
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; // ไม่บังคับ HTTPS
+});
 builder.Services.AddScoped<IUserService, UserServices>();
 builder.Services.AddScoped<IFinanceService, FinanceService>();
 builder.Services.AddScoped<IOcrService, TesseracOcrService>();
@@ -96,7 +100,6 @@ if (app.Environment.IsDevelopment())
 // app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-
 app.UseCors("AllowFrontendWithCookies");
 
 app.UseAuthentication();
