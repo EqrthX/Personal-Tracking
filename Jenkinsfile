@@ -17,7 +17,10 @@ pipeline {
         stage('Docker Compose Build') {
             steps {
                 echo 'กำลัง Build Images ทั้งหมดด้วย Docker Compose...'
-                // ใช้การเช็คผ่าน shell โดยตรง
+                withCredentials([file(credentialsId: 'APPSETTINGS_PRODUCTION', variable: 'SECRET_FILE')]) {
+                    sh 'cp $SECRET_FILE ./appsettings.json'
+                }
+                
                 sh 'docker-compose build'
             }
             post {
