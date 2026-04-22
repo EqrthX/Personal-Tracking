@@ -1,58 +1,71 @@
 pipeline {
     agent any
 
+    // 1. ตั้งค่า Environment Variables (ถ้าโฟลเดอร์เปลี่ยน แก้แค่ตรงนี้ที่เดียวจบ)
+    environment {
+        API_DIR = "server_personal_tracking"
+    }
+
+    // 2. Best Practice Options: ป้องกันเซิร์ฟเวอร์ Jenkins ทำงานหนักเกินไป
+    options {
+        timeout(time: 15, unit: 'MINUTES') // ป้องกัน Pipeline ค้าง (ถ้าเกิน 15 นาทีให้ตัดจบเลย)
+        buildDiscarder(logRotator(numToKeepStr: '10')) // เก็บประวัติ Build ไว้แค่ 10 ครั้งล่าสุด (ประหยัดพื้นที่ดิสก์)
+        disableConcurrentBuilds() // ป้องกันการกด Build รัวๆ จนทำงานซ้อนกันแล้วพัง
+    }
+
     stages {
         stage('Checkout') {
             steps {
-                echo 'ดึงโค้ดล่าสุดจาก Github'
+                echo '📦 Checkout Source Code...'
                 checkout scm
-            }
-            post {
-                failure {
-                    echo '❌ Error: ไม่สามารถดึงโค้ดจาก GitHub ได้ (เช็ค Credentials หรือ Network)'
-                }
             }
         }
 
-        stage('Docker Compose Build') {
+        stage('Prepare Config & Build') {
             steps {
-                echo 'กำลัง Build Images ทั้งหมดด้วย Docker Compose...'
-                withCredentials([file(credentialsId: 'APPSETTINGS_PRODUCTION', variable: 'SECRET_FILE')]) {
-                    sh 'cp "$SECRET_FILE" ./appsettings.json'
-                }
+                echo '🛠️ Copying Secrets and Building Images...'
                 
-                sh 'docker-compose build'
-            }
-            post {
-                failure {
-                    echo '❌ Error: ขั้นตอน Build พัง! อาจเกิดจาก Dockerfile เขียนผิด หรือ Build error ใน Code'
+                withCredentials([file(credentialsId: 'APPSETTINGS_PRODUCTION', variable: 'SECRET_FILE')]) {
+                    // ใช้ set -e เพื่อให้ระบบพ่น Error จริงออกมาและหยุดการทำงานทันทีถ้ามีคำสั่งใดพัง
+                    // และแก้ Path ให้ชี้ไปที่โฟลเดอร์ของ API ที่ถูกต้องตามที่เราคุยกันไว้
+                    sh '''#!/bin/bash
+                    set -e
+                    echo "--> Copying appsettings.json into ${API_DIR}..."
+                    cp "$SECRET_FILE" ./${API_DIR}/appsettings.json
+                    
+                    echo "--> Building Docker Compose..."
+                    docker-compose build
+                    '''
                 }
             }
         }
 
         stage('Deploy') {
             steps {
-                echo 'กำลังเริ่มการทำงานของระบบ (Up)...'
-                sh 'docker-compose up -d'
+                echo '🚀 Deploying Application...'
+                sh '''#!/bin/bash
+                set -e
+                
+                # Best Practice: สั่ง down ก่อนเพื่อล้าง Container เก่าให้สะอาด ป้องกัน Port ชนหรือ Cache ค้าง
+                docker-compose down
+                
+                echo "--> Starting containers..."
+                docker-compose up -d
+                '''
             }
             post {
                 failure {
-                    echo '❌ Error: Deploy ไม่สำเร็จ! เช็คพอร์ตที่จองไว้ หรือสิทธิ์ในการรัน Container'
-                    // คำสั่งเสริม: ให้มันพ่น log ของ docker ออกมาดูเลยว่าทำไมพัง
-                    sh 'docker-compose logs --tail=20'
+                    // หาก Deploy พัง (เช่น รันขึ้นมาแล้ว Crash ทันที) ให้ดูด Log ล่าสุดมาแสดงใน Jenkins เลย
+                    echo '🚨 Deploy ล้มเหลว! กำลังดึง Log จาก Container เพื่อหาสาเหตุ...'
+                    sh 'docker-compose logs --tail=50'
                 }
             }
         }
 
         stage('Cleanup') {
             steps {
-                echo 'ล้าง Image เก่าๆ ที่ไม่ได้ใช้งานออก'
+                echo '🧹 Cleaning up dangling images...'
                 sh 'docker image prune -f'
-            }
-            post {
-                failure {
-                    echo '⚠️ Warning: ล้างขยะไม่สำเร็จ แต่ระบบหลักอาจจะยังทำงานได้อยู่'
-                }
             }
         }
     }
@@ -60,15 +73,15 @@ pipeline {
     // ส่วนสรุปท้ายสุดของทั้ง Pipeline
     post {
         always {
-            // สั่งให้สรุปสถานะ Container ทุกครั้งไม่ว่าจะรันผ่านหรือไม่
-            echo '--- สรุปสถานะ Container ล่าสุด ---'
-            sh 'docker ps -a'
+            echo '📊 สถานะ Container ของโปรเจกต์นี้:'
+            // ใช้ docker-compose ps ดีกว่า docker ps -a เพราะมันจะแสดงเฉพาะของโปรเจกต์นี้ ไม่กวนกับระบบอื่น
+            sh 'docker-compose ps'
         }
         success {
-            echo '✅ ทุกขั้นตอนเสร็จสมบูรณ์!'
+            echo '✅ Pipeline ทำงานเสร็จสมบูรณ์!'
         }
         failure {
-            echo '🚨 Pipeline ล้มเหลว! โปรดเข้าไปดู Console Output เพื่อเช็คบรรทัดที่ Error'
+            echo '❌ Pipeline ล้มเหลว! (เลื่อนขึ้นไปดู Error สีแดงในขั้นตอนที่พังได้เลย ระบบไม่ได้ซ่อนข้อความแล้ว)'
         }
     }
 }
