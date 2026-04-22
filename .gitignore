@@ -1,0 +1,41 @@
+# =========================
+# 1. Frontend (React / Node.js)
+# =========================
+node_modules/
+build/
+dist/
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+# 2. Backend (C# / .NET)
+# =========================
+# โฟลเดอร์ผลลัพธ์จากการ Build (Git จะมุดไปลบให้ทุกโปรเจกต์ย่อย)
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+
+# ไฟล์ตั้งค่าส่วนตัว
+appsettings.Development.json
+appsettings.Local.json
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# โฟลเดอร์ที่ Visual Studio / Rider สร้างขึ้น
+.vs/
+.idea/
+.vscode/
+
+# =========================
+# 3. OS & System Files
+# =========================
+.DS_Store
+Thumbs.db
