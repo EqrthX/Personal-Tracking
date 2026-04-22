@@ -95,7 +95,7 @@ if (app.Environment.IsDevelopment())
 app.UseRouting();
 
 app.UseCors("AllowFrontendWithCookies");
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
