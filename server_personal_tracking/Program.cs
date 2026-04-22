@@ -30,7 +30,8 @@ builder.Services.AddCors(options =>
         policy.WithOrigins("http://35.221.169.135:8081")
                .AllowAnyHeader()
                .AllowAnyMethod()
-               .AllowCredentials();
+               .AllowCredentials()
+               .SetIsOriginAllowedToAllowWildcardSubdomains();
     });
 });
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -92,8 +93,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.UseHttpsRedirection();
-
+// app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseRouting();
 
 app.UseCors("AllowFrontendWithCookies");
