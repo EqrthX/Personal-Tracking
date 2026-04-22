@@ -92,10 +92,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseHttpsRedirection();
+
 app.UseRouting();
 
 app.UseCors("AllowFrontendWithCookies");
-//app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
