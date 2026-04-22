@@ -1,1 +1,7 @@
 appsettings.Development.json
+appsettings.json
+*.env
+
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
