@@ -18,7 +18,7 @@ pipeline {
             steps {
                 echo 'กำลัง Build Images ทั้งหมดด้วย Docker Compose...'
                 withCredentials([file(credentialsId: 'APPSETTINGS_PRODUCTION', variable: 'SECRET_FILE')]) {
-                    sh 'cp $SECRET_FILE ./appsettings.json'
+                    sh 'cp "$SECRET_FILE" ./appsettings.json'
                 }
                 
                 sh 'docker-compose build'
