@@ -30,13 +30,13 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo 'กำลังเริ่มการทำงานของระบบ (Up)...'
-                sh 'docker compose up -d'
+                sh 'docker-compose up -d'
             }
             post {
                 failure {
                     echo '❌ Error: Deploy ไม่สำเร็จ! เช็คพอร์ตที่จองไว้ หรือสิทธิ์ในการรัน Container'
                     // คำสั่งเสริม: ให้มันพ่น log ของ docker ออกมาดูเลยว่าทำไมพัง
-                    sh 'docker compose logs --tail=20'
+                    sh 'docker-compose logs --tail=20'
                 }
             }
         }
