@@ -40,6 +40,8 @@ namespace server_personal_tracking.API.Middlewares
         {
             context.Response.Headers.Append("Access-Control-Allow-Origin", "http://35.221.169.135:8081");
             context.Response.Headers.Append("Access-Control-Allow-Credentials", "true");
+            context.Response.Headers.Append("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+            context.Response.Headers.Append("Access-Control-Allow-Headers", "Content-Type, Authorization");
             context.Response.ContentType = "application/json";
 
             var statusCode = (int)HttpStatusCode.InternalServerError;
