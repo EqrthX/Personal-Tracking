@@ -14,7 +14,7 @@ pipeline {
             steps {
                 echo 'กำลัง Build Images ทั้งหมดด้วย Docker Compose...'
                 // สั่ง build ทุก service ที่อยู่ใน docker-compose.yml
-                sh 'docker-compose build'
+                sh 'docker compose build'
             }
         }
 
@@ -24,7 +24,7 @@ pipeline {
                 echo 'กำลังเริ่มการทำงานของระบบ (Up)...'
                 // -d คือรันแบบ background
                 // docker-compose up จะจัดการหยุดตัวเก่าและรันตัวใหม่ให้เองหาก image เปลี่ยนไป
-                sh 'docker-compose up -d'
+                sh 'docker compose up -d'
             }
         }
 
