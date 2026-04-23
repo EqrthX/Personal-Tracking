@@ -27,15 +27,15 @@ builder.Services.ConfigureApplicationCookie(options =>
 builder.Services.AddScoped<IUserService, UserServices>();
 builder.Services.AddScoped<IFinanceService, FinanceService>();
 builder.Services.AddScoped<IOcrService, TesseracOcrService>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontendWithCookies", policy =>
     {
-        // ยอมรับ Origin ที่ยิงเข้ามาแบบไดนามิก (หมดปัญหา IP ไม่ตรงเป๊ะ)
-        policy.SetIsOriginAllowed(origin => true)
+        policy.WithOrigins("http://35.221.184.206:8081")
               .AllowAnyMethod()
               .AllowAnyHeader()
-              .AllowCredentials();
+              .AllowCredentials(); // 👈 ตอนนี้ใช้คู่นี้ได้แล้ว
     });
 });
 
