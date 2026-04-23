@@ -31,13 +31,14 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontendWithCookies", policy =>
     {
-        policy.WithOrigins("http://35.221.184.206:8081")
-               .AllowAnyHeader()
-               .AllowAnyMethod()
-               .AllowCredentials()
-               .SetIsOriginAllowedToAllowWildcardSubdomains();
+        // ยอมรับ Origin ที่ยิงเข้ามาแบบไดนามิก (หมดปัญหา IP ไม่ตรงเป๊ะ)
+        policy.SetIsOriginAllowed(origin => true)
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
