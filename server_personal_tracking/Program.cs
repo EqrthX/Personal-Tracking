@@ -31,7 +31,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontendWithCookies", policy =>
     {
-        policy.WithOrigins("http://35.221.169.135:8081")
+        policy.WithOrigins("http://35.221.184.206:8081")
                .AllowAnyHeader()
                .AllowAnyMethod()
                .AllowCredentials()
