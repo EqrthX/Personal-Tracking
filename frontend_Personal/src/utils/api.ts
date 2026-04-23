@@ -25,8 +25,8 @@ export async function apiCall<T = any>(
     options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
     try {
-        const baseUrl = import.meta.env.VITE_API_URL || 'http://35.221.184.206:3000';
-        const url = `${baseUrl}${endpoint}`;
+
+        const url = endpoint;
 
         const authHeaders = getAuthHeader();
 
