@@ -38,10 +38,7 @@ namespace server_personal_tracking.API.Middlewares
 
         private async Task HandleExceptionAsync(HttpContext context, Exception ex)
         {
-            context.Response.Headers["Access-Control-Allow-Origin"] = "http://35.221.184.206:8081";
-            context.Response.Headers["Access-Control-Allow-Credentials"] = "true";
-            context.Response.Headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS";
-            context.Response.Headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization";
+
             context.Response.ContentType = "application/json";
 
             var statusCode = (int)HttpStatusCode.InternalServerError;
