@@ -82,9 +82,9 @@ export const AnalyticsPage = () => {
     }
   };
 
-  const prepareDateForInput = (records: never[]) => {
-    const totalIncome = records.filter(record => String(record.type) === 'Income').reduce((sum, record) => sum + record.amount, 0);
-    const totalExpense = records.filter(record => String(record.type) === 'Expense').reduce((sum, record) => sum + record.amount, 0);
+  const prepareDateForInput = (records: any[]) => {
+    const totalIncome = records.filter(record => String(record.type) === 'Income').reduce((sum, record) => sum + Number(record.amount), 0);
+    const totalExpense = records.filter(record => String(record.type) === 'Expense').reduce((sum, record) => sum + Number(record.amount), 0);
     return [
       {name: 'รายรับ', value: totalIncome, color: '#4ade80'},
       {name: 'รายจ่าย', value: totalExpense, color: '#f87171'},
