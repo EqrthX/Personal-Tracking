@@ -1,16 +1,19 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getJWTToken } from '../utils/auth';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useFinanceStats } from '../hooks/useFinanceStats';
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import Pagination from 'rc-pagination';
 
 export const DashboardPage = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const token = getJWTToken();
   const isCookieAuth = token === 'COOKIE_AUTH';
-  const { incomeAmount, expenseAmount, netBalance, financeData, transformDataForChart, monthlyTrendData } = useFinanceStats();
+  const { incomeAmount, expenseAmount, netBalance, financeData, transformDataForChart, monthlyTrendData, rawFinanceData } = useFinanceStats();
+  const [currentPage, setCurrentPage] = useState(1); 
+  const pageSize = 5; 
   const chartData = useMemo(() => {
     return transformDataForChart(financeData);
   }, [financeData, transformDataForChart]);
@@ -24,7 +27,10 @@ export const DashboardPage = () => {
       navigate('/login', { replace: true });
     }
   }, [user, token, navigate, authLoading, isCookieAuth]);
-  
+  const allTransactions = (Array.isArray(rawFinanceData) ? (rawFinanceData as any[]) : []);    
+  const startIndex = (currentPage - 1) * pageSize;
+  const paginatedTransactions = allTransactions.slice(startIndex, startIndex + pageSize);
+
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 py-12 px-4">
       {/* Loading Spinner */}
@@ -156,31 +162,80 @@ export const DashboardPage = () => {
                 </tr>
               </thead>
               <tbody>
-                <tr className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
-                  <td className="py-3 px-4 text-gray-600 dark:text-gray-400" colSpan={4}>
-                    <div className="flex items-center justify-center py-8">
-                      <p className="text-gray-500 dark:text-gray-500">ยังไม่มีธุรกรรมสำหรับแสดง</p>
-                    </div>
-                  </td>
-                </tr>
+                {paginatedTransactions.length > 0 ? (
+                  paginatedTransactions.map((item: any, index: number) => (
+                    <tr key={index} className="border-b border-gray-200 dark:border-gray-700">  
+                      <td className="py-3 px-4 text-gray-700 dark:text-gray-300">{new Date(item.date).toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: '2-digit' })}</td>
+                      <td className="py-3 px-4 text-gray-700 dark:text-gray-300">{item.name}</td>
+                      <td className={`py-3 px-4 text-gray-700 dark:text-gray-300 ${item.type === 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {item.type === 0 ? 'รายรับ' : 'รายจ่าย'}
+                      </td>
+                      <td className={`py-3 px-4 text-right font-medium ${item.type === 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {item.amount.toFixed(2)} บาท
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={4} className="py-4 text-center text-gray-500 dark:text-gray-400">
+                      ยังไม่มีธุรกรรม หรือกำลังโหลด...
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
+          {allTransactions.length > 0 && (
+            <div className="mt-6 flex justify-end">
+              <Pagination 
+                current={currentPage} 
+                total={allTransactions.length} 
+                pageSize={pageSize} 
+                onChange={(page) => setCurrentPage(page)} 
+                // 💡 เพิ่ม itemRender ตรงนี้
+                itemRender={(current, type, originalElement) => {
+                    // 1. ปุ่มตัวเลขหน้า
+                    if (type === 'page') {
+                    const isActive = current === currentPage;
+                    return (
+                        <button 
+                        className={`w-8 h-8 flex items-center justify-center rounded-md font-medium transition-colors ${
+                            isActive 
+                            ? 'bg-green-600 text-white border border-green-600' 
+                            : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700'
+                        }`}
+                        >
+                        {current}
+                        </button>
+                    );
+                    }
+                    
+                    // 2. ปุ่มก่อนหน้า (Previous)
+                    if (type === 'prev') {
+                    return (
+                        <button className="px-3 h-8 flex items-center justify-center rounded-md border border-white bg-white text-gray-600 hover:bg-gray-100dark:border-gray-600 transition-colors">
+                            ก่อนหน้า
+                        </button>
+                    );
+                    }
+
+                    // 3. ปุ่มถัดไป (Next)
+                    if (type === 'next') {
+                    return (
+                        <button className="px-3 h-8 flex items-center justify-center rounded-md border border-white bg-white text-gray-600 hover:bg-gray-100 transition-colors">
+                            ถัดไป
+                        </button>
+                    );
+                    }
+
+                    return originalElement;
+                }} 
+                />
+            </div>
+          )}
         </div>
 
-        {/* TODO: Data to fetch from API */}
-        <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-          <p className="text-sm text-blue-800 dark:text-blue-300">
-            💡 <strong>TODO:</strong> เชื่อมต่อ API เพื่อดึงข้อมูล:
-          </p>
-          <ul className="mt-2 text-sm text-blue-700 dark:text-blue-400 list-disc list-inside space-y-1">
-            <li className='text-green-400'>ดึงข้อมูลรายรับ/รายจ่าย (Total Income/Expense)</li>
-            <li className='text-green-400'>คำนวณยอดคงเหลือ (Net Balance)</li>
-            <li>สร้างกราฟ Income vs Expense</li>
-            <li>สร้างกราฟแนวโน้มรายเดือน</li>
-            <li>ดึงรายการธุรกรรมล่าสุด</li>
-          </ul>
-        </div>
+        
       </div>
     </div>
   );

@@ -25,7 +25,7 @@ export const OverviewPage = () => {
         }
     }, [user, token, navigate, authLoading, isCookieAuth]);
 
-    const allTransactions = (Array.isArray(rawFinanceData) ? (rawFinanceData as any[]) : []);
+    const allTransactions = (Array.isArray(rawFinanceData) ? (rawFinanceData as any[]) : []);    
     const startIndex = (currentPage - 1) * pageSize;
     const paginatedTransactions = allTransactions.slice(startIndex, startIndex + pageSize);
 
@@ -206,17 +206,7 @@ export const OverviewPage = () => {
           )}
         </div>
             
-        <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-            <p className="text-sm text-blue-800 dark:text-blue-300">
-                💡 <strong>TODO:</strong> เชื่อมต่อ API เพื่อดึงข้อมูล:
-            </p>
-            <ul className="mt-2 text-sm text-blue-700 dark:text-blue-400 list-disc list-inside space-y-1">
-                <li className='text-green-400'>ดึงข้อมูลรายรับ/รายจ่าย (Total Income/Expense)</li>
-                <li className='text-green-400'>คำนวณยอดคงเหลือ (Net Balance)</li>
-                <li className='text-green-400'>ดึงรายการธุรกรรมล่าสุด</li>
-                <li className='text-green-400'>รีเฟรชข้อมูลหลังเพิ่มข้อมูล</li>
-            </ul>
-            </div>
+        
         </div>
     </div>
     );

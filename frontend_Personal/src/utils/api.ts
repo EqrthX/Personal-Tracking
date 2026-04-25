@@ -155,3 +155,14 @@ export async function getMonthSummy() {
         credentials: 'include'
     })
 }
+
+export async function getAnalytics(startDate: string, endDate: string) {
+    return apiCall('/api/Analytics/summary', {
+        method: 'POST',
+        credentials: 'include',
+        body: JSON.stringify({
+            StartDate: startDate,
+            EndDate: endDate
+        })
+    })
+}

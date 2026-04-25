@@ -32,7 +32,9 @@ export const useFinanceStats = (): FinanceStats => {
                 ])
                 if (response.success) {
                     setFinanceData(response.data.data);
-                    setRawFinanceData(response.data)
+
+                    setRawFinanceData(response.data.data)
+
                     let income = 0;
                     let expense = 0;
 
