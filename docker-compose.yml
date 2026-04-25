@@ -34,7 +34,7 @@ services:
     container_name: backend_tracking
     environment:
       - ConnectionStrings__DefaultConnection=Server=34.92.198.251;Database=PersonalTrackingDB;User
-        Id=sqlserver;Password={SQL_PASSWORD};TrustServerCertificate=True;
+        Id=sqlserver;Password=${SQL_PASSWORD};TrustServerCertificate=True;
       - ASPNETCORE_ENVIRONMENT=Production
     networks:
       - app_network
@@ -48,6 +48,8 @@ services:
         # เปลี่ยนเป็น IP ของคุณ
         - VITE_API_URL=${API_URL}
     container_name: frontend_tracking
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
     networks:
       - app_network
     restart: always
