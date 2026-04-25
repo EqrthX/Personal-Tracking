@@ -22,7 +22,7 @@ export const AnalyticsPage = () => {
     return new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0]; 
   });
 
-  const [records, setRecords] = useState([]);
+  const [records, setRecords] = useState<any[]>([]);
   const [allReport, setAllReport] = useState(0);
   const [averageReport, setAverageReport] = useState(0);
   const [highestExpense, setHighestExpense] = useState(0);
@@ -82,9 +82,9 @@ export const AnalyticsPage = () => {
     }
   };
 
-  const prepareDateForInput = () => {
-    const totalIncome = records.filter(record => record.type === 'Income').reduce((sum, record) => sum + record.amount, 0);
-    const totalExpense = records.filter(record => record.type === 'Expense').reduce((sum, record) => sum + record.amount, 0);
+  const prepareDateForInput = (records: never[]) => {
+    const totalIncome = records.filter(record => String(record.type) === 'Income').reduce((sum, record) => sum + record.amount, 0);
+    const totalExpense = records.filter(record => String(record.type) === 'Expense').reduce((sum, record) => sum + record.amount, 0);
     return [
       {name: 'รายรับ', value: totalIncome, color: '#4ade80'},
       {name: 'รายจ่าย', value: totalExpense, color: '#f87171'},
@@ -211,7 +211,7 @@ export const AnalyticsPage = () => {
             {records.length > 0 ? (
               <div className="h-100"> 
                 {(() => {
-                  const pieData = prepareDateForInput(records);
+                  const pieData = prepareDateForInput(records as never[]);
                   return (
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -230,7 +230,7 @@ export const AnalyticsPage = () => {
                             <Cell key={`cell-${index}`} fill={entry.color} />
                           ))}
                         </Pie>
-                        <Tooltip formatter={(value: number) => [`${value.toLocaleString()} บาท`, 'ยอดรวม']} />
+                        <Tooltip formatter={(value: any) => [`${value.toLocaleString()} บาท`, 'ยอดรวม']} />
                         <Legend verticalAlign="bottom" height={36} />
                       </PieChart>
                     </ResponsiveContainer>
