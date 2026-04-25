@@ -1,12 +1,43 @@
 version: "3.8"
 
 services:
+  nginx:
+    image: nginx:stable-alpine
+    container_name: nginx_proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf:/etc/nginx/conf.d
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - app_network
+    restart: always
+
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    networks:
+      - app_network
+
   backend:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "3000:8080"
+    container_name: backend_tracking
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=34.92.198.251;Database=PersonalTrackingDB;User
+        Id=sqlserver;Password={SQL_PASSWORD};TrustServerCertificate=True;
+      - ASPNETCORE_ENVIRONMENT=Production
+    networks:
+      - app_network
     restart: always
 
   frontend:
@@ -14,9 +45,13 @@ services:
       context: ./frontend_Personal
       dockerfile: Dockerfile
       args:
+        # เปลี่ยนเป็น IP ของคุณ
         - VITE_API_URL=${API_URL}
-    ports:
-      - "8081:80"
+    container_name: frontend_tracking
+    networks:
+      - app_network
     restart: always
-    depends_on:
-      - backend
+
+networks:
+  app_network:
+    driver: bridge

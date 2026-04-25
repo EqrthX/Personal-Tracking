@@ -1,16 +1,14 @@
 pipeline {
     agent any
 
-    // 1. ตั้งค่า Environment Variables (ถ้าโฟลเดอร์เปลี่ยน แก้แค่ตรงนี้ที่เดียวจบ)
     environment {
         API_DIR = "server_personal_tracking"
     }
 
-    // 2. Best Practice Options: ป้องกันเซิร์ฟเวอร์ Jenkins ทำงานหนักเกินไป
     options {
-        timeout(time: 15, unit: 'MINUTES') // ป้องกัน Pipeline ค้าง (ถ้าเกิน 15 นาทีให้ตัดจบเลย)
-        buildDiscarder(logRotator(numToKeepStr: '10')) // เก็บประวัติ Build ไว้แค่ 10 ครั้งล่าสุด (ประหยัดพื้นที่ดิสก์)
-        disableConcurrentBuilds() // ป้องกันการกด Build รัวๆ จนทำงานซ้อนกันแล้วพัง
+        timeout(time: 15, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        disableConcurrentBuilds()
     }
 
     stages {
@@ -24,43 +22,50 @@ pipeline {
         stage('Prepare Config & Build') {
             steps {
                 echo '🛠️ Copying Secrets and Building Images...'
-                
                 withCredentials([
                     file(credentialsId: 'APPSETTINGS_PRODUCTION', variable: 'SECRET_FILE'),
-                    string(credentialsId: 'MY_API_URL', variable: 'SECRET_URL')
+                    string(credentialsId: 'MY_API_URL', variable: 'SECRET_URL'),
+                    string(credentialsId: 'DB_PASSWORD', variable: 'SQL_PASS') 
                 ]) {
                     sh '''#!/bin/bash
                     set -e
                     echo "--> Copying appsettings.json into ${API_DIR}..."
                     cp "$SECRET_FILE" ./${API_DIR}/appsettings.json
                     
-                    echo "--> Building Docker Compose with API URL..."
-                    # ส่งค่า API_URL เข้าไปตอน Build ครั้งเดียวจบ
-                    API_URL="${SECRET_URL}" docker-compose build --no-cache frontend
+                    # สร้างไฟล์ .env ให้ docker-compose อ่านค่ารหัสผ่านไปใช้ได้
+                    echo "SQL_PASSWORD=${SQL_PASS}" > .env
+                    
+                    echo "--> Building all required images..."
+                    # ไม่ต้องระบุแค่ frontend แล้ว ให้ build รวดเดียวเลย
+                    API_URL="${SECRET_URL}" docker-compose build --no-cache
                     '''
                 }
             }
-            
         }
 
         stage('Deploy') {
             steps {
                 echo '🚀 Deploying Application...'
-                sh '''#!/bin/bash
-                set -e
                 
-                # Best Practice: สั่ง down ก่อนเพื่อล้าง Container เก่าให้สะอาด ป้องกัน Port ชนหรือ Cache ค้าง
-                docker-compose down
-                
-                echo "--> Starting containers..."
-                docker-compose up -d
-                '''
+                // ใช้ withCredentials อีกรอบตอน Deploy เพราะ docker-compose up ต้องใช้ค่า API_URL 
+                withCredentials([
+                    string(credentialsId: 'MY_API_URL', variable: 'SECRET_URL')
+                ]) {
+                    sh '''#!/bin/bash
+                    set -e
+                    
+                    echo "--> Stopping existing containers..."
+                    docker-compose down
+                    
+                    echo "--> Starting new containers..."
+                    API_URL="${SECRET_URL}" docker-compose up -d
+                    '''
+                }
             }
             post {
                 failure {
-                    // หาก Deploy พัง (เช่น รันขึ้นมาแล้ว Crash ทันที) ให้ดูด Log ล่าสุดมาแสดงใน Jenkins เลย
-                    echo '🚨 Deploy ล้มเหลว! กำลังดึง Log จาก Container เพื่อหาสาเหตุ...'
-                    sh 'docker-compose logs --tail=50'
+                    echo '🚨 Deploy ล้มเหลว! กำลังดึง Log ของ Nginx และ Backend มาดูสาเหตุ...'
+                    sh 'docker-compose logs --tail=50 nginx_proxy backend_tracking'
                 }
             }
         }
@@ -73,18 +78,16 @@ pipeline {
         }
     }
 
-    // ส่วนสรุปท้ายสุดของทั้ง Pipeline
     post {
         always {
             echo '📊 สถานะ Container ของโปรเจกต์นี้:'
-            // ใช้ docker-compose ps ดีกว่า docker ps -a เพราะมันจะแสดงเฉพาะของโปรเจกต์นี้ ไม่กวนกับระบบอื่น
             sh 'docker-compose ps'
         }
         success {
-            echo '✅ Pipeline ทำงานเสร็จสมบูรณ์!'
+            echo '✅ Pipeline ทำงานเสร็จสมบูรณ์ ระบบรันเป็น HTTPS แล้ว!'
         }
         failure {
-            echo '❌ Pipeline ล้มเหลว! (เลื่อนขึ้นไปดู Error สีแดงในขั้นตอนที่พังได้เลย ระบบไม่ได้ซ่อนข้อความแล้ว)'
+            echo '❌ Pipeline ล้มเหลว! ลองเช็คดูว่า Nginx ล่มเพราะหาไฟล์ Certificate ไม่เจอหรือเปล่า'
         }
     }
 }
