@@ -26,7 +26,8 @@ export async function apiCall<T = any>(
 ): Promise<ApiResponse<T>> {
     try {
 
-        const url = endpoint;
+        const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/api$/, '') || '';
+        const url = `${baseUrl}${endpoint}`;
 
         const authHeaders = getAuthHeader();
 

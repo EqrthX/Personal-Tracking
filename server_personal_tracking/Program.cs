@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using server_personal_tracking.API.Middlewares;
@@ -64,7 +65,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             }
         };
     });
-
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -101,23 +107,9 @@ if (app.Environment.IsDevelopment())
 }
 // app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.Use(async (context, next) =>
-{
-    if (context.Request.Method == "OPTIONS")
-    {
-        // กำหนด Header ให้ตรงกับที่คุณอนุญาตไว้
-        context.Response.Headers.Append("Access-Control-Allow-Origin", "http://35.221.184.206:8081");
-        context.Response.Headers.Append("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        context.Response.Headers.Append("Access-Control-Allow-Headers", "Content-Type, Authorization");
-        context.Response.Headers.Append("Access-Control-Allow-Credentials", "true");
 
-        context.Response.StatusCode = 200;
-        await context.Response.CompleteAsync(); // ตอบกลับทันที ไม่ต้องส่งไปให้ตัวอื่นประมวลผลต่อ
-        return;
-    }
+app.UseForwardedHeaders();
 
-    await next();
-});
 app.UseRouting();
 app.UseCors("AllowFrontendWithCookies");
 
