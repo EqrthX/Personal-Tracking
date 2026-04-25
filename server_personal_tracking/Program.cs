@@ -27,6 +27,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 builder.Services.AddScoped<IUserService, UserServices>();
 builder.Services.AddScoped<IFinanceService, FinanceService>();
 builder.Services.AddScoped<IOcrService, TesseracOcrService>();
+builder.Services.AddScoped<IAnalytics, AnalyticsService>();
 
 builder.Services.AddCors(options =>
 {
